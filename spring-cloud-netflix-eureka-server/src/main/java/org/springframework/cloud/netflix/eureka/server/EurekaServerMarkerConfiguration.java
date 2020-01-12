@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Responsible for adding in a marker bean to activate
  * {@link EurekaServerAutoConfiguration}
- *
+ * 激活标记类。激活 EurekaServerAutoConfiguration 的开关
  * @author Biju Kunjummen
  */
 @Configuration

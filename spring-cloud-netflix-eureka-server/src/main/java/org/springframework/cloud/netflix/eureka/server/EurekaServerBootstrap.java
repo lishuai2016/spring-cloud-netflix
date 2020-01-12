@@ -39,6 +39,11 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Spencer Gibb
+ * eurekaServerBootstrap是spring cloud定义的类，其代码完全拷贝了Eureka启动类的实现
+ *
+ * Eureka是一个纯正的Servlet应用，而Spring Boot使用的是嵌入式Tomcat, 因此就需要一定的胶水代码让Eureka跑在Embedded Tomcat中。
+ * 这部分工作是在 EurekaServerBootstrap 中完成的。与上面提到的EurekaBootStrap相比，
+ * 它的代码几乎是直接将原生代码copy过来的，虽然它并没有继承 ServletContextListener, 但是相应的生命周期方法都还在
  */
 public class EurekaServerBootstrap {
 
@@ -77,10 +82,10 @@ public class EurekaServerBootstrap {
 		this.serverContext = serverContext;
 	}
 
-	public void contextInitialized(ServletContext context) {
+	public void contextInitialized(ServletContext context) {//启动入口
 		try {
-			initEurekaEnvironment();
-			initEurekaServerContext();
+			initEurekaEnvironment();// 初始化Eureka的环境变量
+			initEurekaServerContext();// 初始化Eureka的上下文
 
 			context.setAttribute(EurekaServerContext.class.getName(), this.serverContext);
 		}
@@ -147,14 +152,28 @@ public class EurekaServerBootstrap {
 			this.awsBinder.start();
 		}
 
-		EurekaServerContextHolder.initialize(this.serverContext);
+		EurekaServerContextHolder.initialize(this.serverContext);//初始化eureka server上下文
 
 		log.info("Initialized server context");
 
-		// Copy registry from neighboring eureka node
+		// Copy registry from neighboring eureka node // 从相邻的eureka节点复制注册表
+		/**
+		 egistry.syncUp() 方法用于在当前 Eureka Server 节点启动时从邻近的Eureka Server同步注册信息，
+		 并返回同步得到的应用数量。当存在多个Eureka Server时，该方法会有实际的作用，
+		 用于达到各个节点之间数据的最终一致性。可以通过 eureka.server.registry-sync-retries 配置调整同步重试次数。
+		 如果未获取到应用实例，则 Eureka-Server 会有一段时间( 默认：5 分钟，可配 )不允许被 Eureka-Client 获取注册信息，
+		 避免影响 Eureka-Client
+		 */
 		int registryCount = this.registry.syncUp();
+		/**
+		 registry.openForTraffic() 方法
+		 在应用启动后，将会向Eureka Server发送心跳,默认周期为30秒，如果Eureka Server在多个心跳周期内没有接收到某个节点的心跳，
+		 Eureka Server将会从服务注册表中把这个服务节点移除(默认90秒)。
+		 */
 		this.registry.openForTraffic(this.applicationInfoManager, registryCount);
-
+// 默认每30秒发送心跳，1分钟就是2次
+		// 修改eureka状态为up
+		// 同时，这里面会开启一个定时任务，用于清理 60秒没有心跳的客户端。自动下线
 		// Register all monitoring statistics.
 		EurekaMonitors.registerAllStats();
 	}

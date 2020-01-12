@@ -34,6 +34,9 @@ import com.netflix.eureka.EurekaServerConfig;
 
 /**
  * @author Dave Syer
+在EurekaServerAutoConfiguration加载完成之后就会执行EurekaServerInitializerConfiguration这个类的start方法
+
+SmartLifecycle(Spring容器初始化该bean时会调用相应生命周期方法)
  */
 @Configuration
 public class EurekaServerInitializerConfiguration
@@ -62,18 +65,18 @@ public class EurekaServerInitializerConfiguration
 	}
 
 	@Override
-	public void start() {
-		new Thread(new Runnable() {
+	public void start() {//在Spring容器初始化该组件时，Spring调用其生命周期方法start()从而触发了Eureka的启动
+		new Thread(new Runnable() {// 启动一个线程
 			@Override
 			public void run() {
 				try {
-					//TODO: is this class even needed now?
+					//TODO: is this class even needed now?  //初始化EurekaServer，同时启动Eureka Server
 					eurekaServerBootstrap.contextInitialized(EurekaServerInitializerConfiguration.this.servletContext);
 					log.info("Started Eureka Server");
 
-					publish(new EurekaRegistryAvailableEvent(getEurekaServerConfig()));
-					EurekaServerInitializerConfiguration.this.running = true;
-					publish(new EurekaServerStartedEvent(getEurekaServerConfig()));
+					publish(new EurekaRegistryAvailableEvent(getEurekaServerConfig()));// 发布EurekaServer的注册事件
+					EurekaServerInitializerConfiguration.this.running = true;// 设置启动的状态为true
+					publish(new EurekaServerStartedEvent(getEurekaServerConfig())); // 发送Eureka Start 事件 ， 其他还有各种事件，我们可以监听这种时间，然后做一些特定的业务需求
 				}
 				catch (Exception ex) {
 					// Help!
@@ -87,7 +90,7 @@ public class EurekaServerInitializerConfiguration
 		return this.eurekaServerConfig;
 	}
 
-	private void publish(ApplicationEvent event) {
+	private void publish(ApplicationEvent event) {//发布事件
 		this.applicationContext.publishEvent(event);
 	}
 

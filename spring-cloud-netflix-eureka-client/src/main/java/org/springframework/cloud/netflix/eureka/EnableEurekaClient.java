@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * it is Eureka you want. All it does is turn on discovery and let the autoconfiguration
  * find the eureka classes if they are available (i.e. you need Eureka on the classpath as
  * well).
- *
+ * eureka注册中心发现注解
  * @author Dave Syer
  * @author Spencer Gibb
  */

@@ -33,7 +33,7 @@ import org.springframework.core.style.ToStringCreator;
 
 /**
  * @author Dave Syer
- * @author Gregor Zurowski
+ * @author Gregor Zurowski  server端的配置解析类继承原始的配置类EurekaServerConfig
  */
 @ConfigurationProperties(EurekaServerConfigBean.PREFIX)
 public class EurekaServerConfigBean implements EurekaServerConfig {
